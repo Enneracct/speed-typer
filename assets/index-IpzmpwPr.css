@@ -1,0 +1,1 @@
+*{margin:0;padding:0}@keyframes flash{0%,to{opacity:0}50%{opacity:1}}.caret{animation-name:flash;animation-iteration-count:infinite;animation-duration:1s;transition:.12s}.caret{border-left-width:2px;border-color:#fff;position:absolute;display:inline;color:#fff}
