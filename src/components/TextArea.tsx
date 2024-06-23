@@ -1,23 +1,16 @@
 import { Box, Flex, Kbd } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useTypingGame from "react-typing-game-hook";
-import easter from "../assets/secret_mode/oie_transparent.png";
-import soundvfx from "../assets/secret_mode/EasterSound.wav";
+import { generateWordSequence } from "../utils/generateWodSequence";
 
-interface TextAreaProps {
-  paragraph: string;
-}
-
-const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
+const TextArea = () => {
+  const [paragraph, setParagraph] = useState("");
   const [time, setTime] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [wpm, setWpm] = useState(0);
   const [cpm, setCpm] = useState(0);
-  const [isEasterEgg, setIsEasterEgg] = useState(false);
-  const [easterEggTriggered, setEasterEggTriggered] = useState(false);
   const letterElements = useRef<HTMLDivElement>(null);
 
-  const easterEffect = new Audio(soundvfx);
   const {
     states: { charsState, currIndex, phase, correctChar, startTime, endTime },
     actions: { insertTyping, deleteTyping, resetTyping },
@@ -39,6 +32,11 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
     return { left: -2, top: 2 };
   }, [currIndex]);
 
+  // Set new paragraph on page load
+  useEffect(() => {
+    setParagraph(generateWordSequence(10));
+  }, []);
+
   // Set WPM and CPM
   useEffect(() => {
     if (phase === 2 && endTime && startTime) {
@@ -48,7 +46,7 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
     }
   }, [phase, startTime, endTime]);
 
-  // Calculate current WPM and CPM
+  // Calculate current WPM, CPM
   useEffect(() => {
     if (startTime) {
       const currentTime = new Date().getTime();
@@ -57,17 +55,17 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
       const currentCpm = Math.round(correctChar / (elapsedTime / 60));
       setWpm(currentWpm);
       setCpm(currentCpm);
-
-      if (!easterEggTriggered && currentWpm < 50) {
-        handleEasterEgg();
-      }
     }
-  }, [currIndex, correctChar, startTime, easterEggTriggered]);
+  }, [currIndex, correctChar, startTime]);
+
+  const restart = () => {
+    setParagraph(generateWordSequence(10));
+    resetTyping();
+  };
 
   const handleKeyDown = (letter: string, control: boolean) => {
     if (letter === "Escape") {
-      resetTyping();
-      setEasterEggTriggered(false);
+      restart();
       setWpm(0);
       setCpm(0);
     } else if (letter === "Backspace") {
@@ -75,15 +73,6 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
     } else if (letter.length === 1) {
       insertTyping(letter);
     }
-  };
-
-  const handleEasterEgg = () => {
-    setIsEasterEgg(true);
-    setEasterEggTriggered(true);
-    easterEffect.play();
-    setTimeout(() => {
-      setIsEasterEgg(false);
-    }, 1100);
   };
 
   return (
@@ -94,8 +83,7 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
         onFocus={() => setIsTyping(true)}
         onBlur={() => setIsTyping(false)}
         onKeyDown={(e) => handleKeyDown(e.key, e.ctrlKey)}
-        tabIndex={0}
-      >
+        tabIndex={0}>
         <Box ref={letterElements} tabIndex={0}>
           {paragraph.split("").map((letter, index) => {
             const state = charsState[index];
@@ -114,8 +102,7 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
             style={{
               left: pos.left,
               top: pos.top,
-            }}
-          >
+            }}>
             &nbsp;
           </span>
         ) : null}
@@ -141,17 +128,6 @@ const TextArea: React.FC<TextAreaProps> = ({ paragraph }) => {
           to restart
         </span>
       </Flex>
-      {isEasterEgg && (
-        <img
-          src={easter}
-          style={{
-            position: "absolute",
-            top: 0,
-            transform: "translateY(-22rem) translateX(44rem)",
-          }}
-          alt=""
-        />
-      )}
     </Box>
   );
 };
