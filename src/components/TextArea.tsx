@@ -2,14 +2,17 @@ import { Box, Flex, Kbd } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useTypingGame from "react-typing-game-hook";
 import { generateWordSequence } from "../utils/generateWodSequence";
+import WordsBtn from "./ui/WordsBtn";
 
 const TextArea = () => {
   const [paragraph, setParagraph] = useState("");
+  const typingBox = useRef<HTMLDivElement>(null);
   const [time, setTime] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [wpm, setWpm] = useState(0);
   const [cpm, setCpm] = useState(0);
   const letterElements = useRef<HTMLDivElement>(null);
+  const [wordsInParagraph, setWordsInParagraph] = useState(10);
 
   const {
     states: { charsState, currIndex, phase, correctChar, startTime, endTime },
@@ -34,8 +37,9 @@ const TextArea = () => {
 
   // Set new paragraph on page load
   useEffect(() => {
-    setParagraph(generateWordSequence(10));
-  }, []);
+    setParagraph(generateWordSequence(wordsInParagraph));
+    typingBox.current?.focus();
+  }, [wordsInParagraph]);
 
   // Set WPM and CPM
   useEffect(() => {
@@ -59,7 +63,7 @@ const TextArea = () => {
   }, [currIndex, correctChar, startTime]);
 
   const restart = () => {
-    setParagraph(generateWordSequence(10));
+    setParagraph(generateWordSequence(wordsInParagraph));
     resetTyping();
   };
 
@@ -76,8 +80,15 @@ const TextArea = () => {
   };
 
   return (
-    <Box w="1000px" p="1rem" pos="relative" rounded="md" bgColor="none">
+    <Flex direction="column" gap="2rem" w="1000px" pos="relative" rounded="md">
+      <Flex justifyContent="end" gap="1rem">
+        <WordsBtn val={5} onClick={setWordsInParagraph} />
+        <WordsBtn val={10} onClick={setWordsInParagraph} />
+        <WordsBtn val={25} onClick={setWordsInParagraph} />
+        <WordsBtn val={50} onClick={setWordsInParagraph} />
+      </Flex>
       <Box
+        ref={typingBox}
         pos="relative"
         fontSize="x-large"
         onFocus={() => setIsTyping(true)}
@@ -107,7 +118,7 @@ const TextArea = () => {
           </span>
         ) : null}
       </Box>
-      <Flex justify="space-between" mt="3rem">
+      <Flex justify="space-between">
         <Flex fontSize="small" alignItems="center" gap="4rem">
           <p>WPM: {wpm}</p>
           <p>CPM: {cpm}</p>
@@ -128,7 +139,7 @@ const TextArea = () => {
           to restart
         </span>
       </Flex>
-    </Box>
+    </Flex>
   );
 };
 
